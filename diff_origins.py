@@ -69,7 +69,30 @@ def compare_and_change():
     #Create the headers to CSV report
     fieldnames=['id', 'hostname', 'model', 'exist in CA Spectrum']
     create_report(fieldnames, netmri_report_rows, 'netmri_report.csv')
-    
+    unified_hostnames = []
+    unified_values = []
+    for ca_row in ca_report_rows:
+        unified_hostnames.append(ca_row['hostname'])
+        diff_value = {
+            'hostname': ca_row['hostname'],
+            'exist_in_ca_spectrum': True,
+            'exist_in_netmri': False
+        }
+        unified_values.append(diff_value)
+    for netmri_row in netmri_report_rows:
+        if netmri_row['hostname'] not in unified_hostnames:
+            unified_hostnames.append(netmri_row['hostname'])
+            diff_value = {
+            'hostname': ca_row['hostname'],
+            'exist_in_ca_spectrum': False,
+            'exist_in_netmri': True
+            }
+    for value in unified_values:
+        for netmti_row in netmri_report_rows:
+            if netmti_row['hostname'] == value['hostname']:
+                value['exist_in_netmri'] = True
+    final_json = {'data': unified_values}
+    create_json_file(final_json, 'unified_diffs.json')
 
 def create_report(fieldnames, rows, filename):
     with open(filename, 'w', encoding='UTF8', newline='') as f:
